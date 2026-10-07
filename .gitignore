@@ -1,0 +1,23 @@
+# Segredos (API key do restdb.io)
+local.properties
+
+# Ficheiros gerados
+*.iml
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+
+# Android Studio / IDE
+.idea/
+.DS_Store
+/app/release/
