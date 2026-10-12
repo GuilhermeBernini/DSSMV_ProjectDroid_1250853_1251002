@@ -1,5 +1,6 @@
 package com.example.spinparty;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -36,11 +37,10 @@ public class MainActivity extends AppCompatActivity {
         Button btnRules = findViewById(R.id.btnRules);
 
         btnStart.setOnClickListener(v ->
-                Toast.makeText(
-                        this,
-                        "Vamos preparar os jogadores!",
-                        Toast.LENGTH_SHORT
-                ).show()
+                {
+                    Intent intent = new Intent(this, SpinActivity.class);
+                    startActivity(intent);
+                }
         );
 
         btnRules.setOnClickListener(v ->
