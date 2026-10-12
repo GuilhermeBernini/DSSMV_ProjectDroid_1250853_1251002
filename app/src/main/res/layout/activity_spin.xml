@@ -8,4 +8,37 @@
         android:layout_height="match_parent"
         tools:context=".SpinActivity">
 
+    <TextView
+            android:id="@+id/tvSpinTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gira o telemóvel!"
+            android:textSize="40sp"
+            android:layout_marginTop="92dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+            android:id="@+id/tvNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="?"
+            android:textSize="120sp"
+            android:layout_marginTop="92dp"
+            app:layout_constraintTop_toBottomOf="@id/tvSpinTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+            android:id="@+id/tvResult"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="32sp"
+            android:layout_marginTop="92dp"
+            app:layout_constraintTop_toBottomOf="@id/tvNumber"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
