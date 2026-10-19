@@ -16,7 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.example.spinparty.data.MiniJogoRepository;
+import com.example.spinparty.model.MiniJogo;
 
+import java.util.List;
 import java.util.Random;
 
 public class SpinActivity extends AppCompatActivity implements SensorEventListener {
@@ -26,7 +29,7 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;  // declarar as variáveis
     private Sensor gyroscope;
 
-    private final String[] games = {"Reflexos", "Batata quente", "Contar vibrações"};
+    private List<MiniJogo> jogos;
     private final Random random = new Random();
     private boolean isSpinning = false;   // está a girar agora?
     private long lastSpinTime = 0;        // última vez (em ms) que o vimos girar
@@ -47,6 +50,8 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
         });
         tvNumber = findViewById(R.id.tvNumber);
         tvResult = findViewById(R.id.tvResult);
+
+        jogos = new MiniJogoRepository().getMiniJogos();
 
         btnRespin = findViewById(R.id.btnRespin);
         btnRespin.setOnClickListener(v -> {
@@ -85,13 +90,13 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             // ESTÁ A GIRAR
             isSpinning = true;
             lastSpinTime = now;
-            currentNumber = random.nextInt(3) + 1;   // número entre 1 e 3
+            currentNumber = random.nextInt(jogos.size()) + 1;  // número entre 1 e 3
             tvNumber.setText(String.valueOf(currentNumber));
             tvResult.setText("");
         } else if (isSpinning && now - lastSpinTime > 500) {
             // PAROU: já passou meio segundo sem girar
             isSpinning = false;
-            tvResult.setText(games[currentNumber - 1]);   // nome do jogo
+            tvResult.setText(jogos.get(currentNumber - 1).getNome());   // nome do jogo
             vibrate();
             hasResult = true;
             btnRespin.setVisibility(View.VISIBLE);
