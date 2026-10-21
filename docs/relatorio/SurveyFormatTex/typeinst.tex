@@ -68,15 +68,76 @@
 
 
 \begin{abstract}
-The abstract should summarize the contents of the paper and should
-contain at least 70 and at most 150 words. It should be written using the
-\emph{abstract} environment.
-\keywords{Android \and Jogos móveis \and Jogos de grupo
-\and Sensores \and API REST}
+O SpinParty é uma aplicação Android, desenvolvida em Java, que escolhe
+mini-jogos para grupos de amigos. O jogador faz girar o telemóvel; enquanto
+roda, o ecrã mostra números e, quando a rotação pára, a aplicação sorteia um
+mini-jogo e vibra para avisar o grupo. A aplicação usa o giroscópio, o
+acelerómetro e a vibração do dispositivo e comunica com um serviço REST
+(restdb.io) para obter os mini-jogos e os respetivos desafios e para guardar
+jogadores e pontuações. Este relatório descreve o contexto, a análise, o
+design, a implementação e os testes da aplicação.
+\keywords{Android \and Jogos móveis \and Jogos de grupo \and Sensores \and API REST}
 \end{abstract}
 
 
 \section{Contexto}
 \label{sec:context}
-% Aqui fica o texto do Contexto que preparámos.
+O SpinParty é um jogo de grupo para Android. O jogador coloca o telemóvel a
+girar; enquanto roda, passam números no ecrã e, quando o telemóvel pára, é
+sorteado um mini-jogo. Os jogadores acumulam pontos ao longo das rondas.
+
+Os mini-jogos previstos são: \emph{Reflexos} (ganha quem pegar primeiro no
+telemóvel quando o ecrã fica verde), \emph{Batata quente} (o telemóvel passa
+entre jogadores até ``explodir'') e \emph{Contar vibrações} (adivinhar o
+número de vibrações).
+
+A aplicação explora três funcionalidades do dispositivo: o giroscópio, para
+detetar a rotação; o acelerómetro, para detetar movimento nos mini-jogos; e a
+vibração, como \emph{feedback} e mecânica de jogo. Comunica com o serviço REST
+restdb.io, de onde obtém os mini-jogos e os desafios.
+
+[...] Aplicações semelhantes: [a preencher ainda].
+
+
+\section{Análise}
+\subsection{Requisitos funcionais}
+\begin{itemize}
+\item RF1: detetar a rotação do telemóvel e sortear um mini-jogo quando pára.
+\item RF2: obter os mini-jogos e os desafios do serviço REST (GET).
+\item RF3: criar jogadores (POST).
+\item RF4: atualizar a pontuação dos jogadores no fim de cada ronda (PUT).
+\item RF5: criar e remover desafios personalizados (POST e DELETE).
+\item RF6: mostrar as pontuações no fim do jogo.
+\end{itemize}
+\subsection{Requisitos não funcionais}
+Plataforma Android com API mínima 29, linguagem Java, ligação à Internet e
+demonstração em dispositivo real. [...]
+
+\section{Implementação}
+\subsection{Deteção da rotação com o giroscópio}
+A classe \texttt{SpinActivity} regista-se como \texttt{SensorEventListener}
+do giroscópio em \texttt{onResume} e anula o registo em \texttt{onPause}.
+Em \texttt{onSensorChanged} é lido o valor absoluto da velocidade de rotação
+no eixo $z$. Se for superior a 2, considera-se que o telemóvel está a girar e
+mostra-se um número aleatório; quando passam mais de 500 ms sem rotação, o
+jogo sorteado é mostrado e o telemóvel vibra durante 400 ms.
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+public void onSensorChanged(SensorEvent event) {
+  float z = Math.abs(event.values[2]);
+  long now = System.currentTimeMillis();
+  if (!hasResult && z > 2) {
+    isSpinning = true;
+    lastSpinTime = now;
+    currentNumber = random.nextInt(jogos.size()) + 1;
+    tvNumber.setText(String.valueOf(currentNumber));
+  } else if (isSpinning && now - lastSpinTime > 500) {
+    isSpinning = false;
+    tvResult.setText(jogos.get(currentNumber - 1).getNome());
+    vibrate();
+    hasResult = true;
+  }
+}
+\end{lstlisting}
+
 \end{document}
