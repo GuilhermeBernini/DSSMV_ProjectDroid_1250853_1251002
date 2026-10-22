@@ -21,7 +21,7 @@
 \usepackage{amssymb}
 \setcounter{tocdepth}{3}
 \usepackage{graphicx}
-
+\usepackage{listings}
 \usepackage{url}
 \urldef{\mailsa}\path|{alfred.hofmann, brigitte.apfel, ursula.barth, christine.guenther,|
 \urldef{\mailsb}\path|ingrid.haas, frank.holzwarth, anna.kramer, leonie.kunz, nicole.sator,|
@@ -48,7 +48,7 @@
 \author{Dinis Rodrigues
 \and Guilherme Bernini}
 %
-\authorrunning{Lecture Notes in Computer Science: Authors' Instructions}
+\authorrunning{}
 % (feature abused for this document to repeat the title also on left hand pages)
 
 % the affiliations are given next; don't give your e-mail address
@@ -62,8 +62,8 @@
 % "llncs.dem" accompanies the document class "llncs.cls".
 %
 
-\toctitle{Lecture Notes in Computer Science}
-\tocauthor{Authors' Instructions}
+\toctitle{}
+\tocauthor{}
 \maketitle
 
 
@@ -109,9 +109,22 @@ restdb.io, de onde obtém os mini-jogos e os desafios.
 \item RF5: criar e remover desafios personalizados (POST e DELETE).
 \item RF6: mostrar as pontuações no fim do jogo.
 \end{itemize}
+
 \subsection{Requisitos não funcionais}
-Plataforma Android com API mínima 29, linguagem Java, ligação à Internet e
-demonstração em dispositivo real. [...]
+Seguindo a classificação FURPS+, os requisitos não funcionais são os seguintes.
+\begin{itemize}
+\item \textbf{Usabilidade:} a aplicação tem uma interface gráfica tátil.
+\item \textbf{Fiabilidade e desempenho:} não foram identificados requisitos
+específicos.
+\item \textbf{Suportabilidade:} a aplicação destina-se à plataforma Android,
+com API mínima 29, e deve ter testes automáticos.
+\item \textbf{Restrições de implementação:} a aplicação é desenvolvida em Java,
+no Android Studio, e a demonstração tem de ser feita num dispositivo real.
+\item \textbf{Restrições de interface:} a comunicação com o serviço remoto é
+feita por REST, com dados em JSON.
+\end{itemize}
+
+
 
 \section{Implementação}
 \subsection{Deteção da rotação com o giroscópio}
@@ -121,6 +134,7 @@ Em \texttt{onSensorChanged} é lido o valor absoluto da velocidade de rotação
 no eixo $z$. Se for superior a 2, considera-se que o telemóvel está a girar e
 mostra-se um número aleatório; quando passam mais de 500 ms sem rotação, o
 jogo sorteado é mostrado e o telemóvel vibra durante 400 ms.
+
 
 \begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
 public void onSensorChanged(SensorEvent event) {
@@ -139,5 +153,26 @@ public void onSensorChanged(SensorEvent event) {
   }
 }
 \end{lstlisting}
+
+\section{Design}
+\subsection{Arquitetura física}
+A aplicação corre num dispositivo Android e comunica por HTTPS com o serviço
+REST restdb.io, onde estão guardados os mini-jogos, os desafios e os jogadores
+(Figura~\ref{fig:implantacao}).
+
+\begin{figure}
+\centering
+\fbox{\parbox{0.8\textwidth}{\centering [inserir diagrama de implantação]}}
+\caption{Diagrama de implantação.}
+\label{fig:implantacao}
+\end{figure}
+
+\section{Testes}
+\subsection{Testes funcionais}
+Os testes funcionais foram feitos manualmente no dispositivo [modelo do
+telemóvel], com Android [versão]. A Tabela~\ref{tab:testes} descreve os testes
+e os resultados.
+
+\section{Conclusão}
 
 \end{document}
