@@ -1,5 +1,6 @@
 package com.example.spinparty;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -11,6 +12,7 @@ import android.os.Vibrator;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -37,6 +39,7 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
     private boolean hasResult = false;    // já saiu um jogo?
     private Button btnRespin;             // botão "girar outra vez"
 
+    private Button btnJogar;              // botão "jogar"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +62,12 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             tvNumber.setText("?");
             tvResult.setText("");
             btnRespin.setVisibility(View.GONE);
+            btnJogar.setVisibility(View.GONE);
+
         });
+        btnJogar = findViewById(R.id.btnJogar);
+        btnJogar.setOnClickListener(v -> abrirJogo());
+
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE); // pede ao android acesso aos sensores
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE); // já tem acesso por isso vai buscar o gyroscope
     }
@@ -100,11 +108,23 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             vibrate();
             hasResult = true;
             btnRespin.setVisibility(View.VISIBLE);
+            btnJogar.setVisibility(View.VISIBLE);
         }
     }
 
     private void vibrate() {
         Vibrator vibrator = getSystemService(Vibrator.class);
         vibrator.vibrate(VibrationEffect.createOneShot(400, VibrationEffect.DEFAULT_AMPLITUDE));
+    }
+
+    private void abrirJogo(){
+        MiniJogo jogo = jogos.get(currentNumber - 1);  // o jogo que saiu
+        if (jogo.getTipo().equals("reflexos")){
+            Intent intent = new Intent(this, ReflexosActivity.class);
+            intent.putExtra("nome", jogo.getNome());
+            startActivity(intent);
+        }else{
+            Toast.makeText(this, "Em breve: " + jogo.getNome(), Toast.LENGTH_SHORT).show();
+        }
     }
 }
