@@ -2,3 +2,19 @@
 plugins {
 id 'com.android.application' version '9.1.1' apply false
 }
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+
+android {
+
+    defaultConfig{
+    buildConfigField "String", "RESTDB_BASE_URL", "\"${localProps.getProperty('RESTDB_BASE_URL', '')}\""
+    buildConfigField "String", "RESTDB_API_KEY", "\"${localProps.getProperty('RESTDB_API_KEY', '')}\""
+}
+    buildFeatures {
+    buildConfig true
+}
+}
