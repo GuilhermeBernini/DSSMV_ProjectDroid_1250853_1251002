@@ -13,6 +13,9 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.SpinParty">
         <activity
+                android:name=".BatataQuenteActivity"
+                android:exported="false"/>
+        <activity
                 android:name=".ReflexosActivity"
                 android:exported="false"/>
         <activity

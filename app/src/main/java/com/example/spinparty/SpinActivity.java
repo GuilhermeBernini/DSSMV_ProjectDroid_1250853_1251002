@@ -123,6 +123,10 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             Intent intent = new Intent(this, ReflexosActivity.class);
             intent.putExtra("nome", jogo.getNome());
             startActivity(intent);
+        }else if (jogo.getTipo().equals("batata_quente")){
+            Intent intent = new Intent(this, BatataQuenteActivity.class);
+            intent.putExtra("nome", jogo.getNome());
+            startActivity(intent);
         }else{
             Toast.makeText(this, "Em breve: " + jogo.getNome(), Toast.LENGTH_SHORT).show();
         }
