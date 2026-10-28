@@ -105,7 +105,11 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
         super.onPause();
         sensorManager.unregisterListener(this);
     }
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        repository.fechar();
+    }
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
