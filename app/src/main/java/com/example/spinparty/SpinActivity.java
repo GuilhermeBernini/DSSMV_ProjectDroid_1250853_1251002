@@ -23,6 +23,7 @@ import com.example.spinparty.model.MiniJogo;
 
 import java.util.List;
 import java.util.Random;
+import android.util.Log;
 
 public class SpinActivity extends AppCompatActivity implements SensorEventListener {
     private TextView tvNumber;
@@ -32,6 +33,7 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
     private Sensor gyroscope;
 
     private List<MiniJogo> jogos;
+    private MiniJogoRepository repository;
     private final Random random = new Random();
     private boolean isSpinning = false;   // está a girar agora?
     private long lastSpinTime = 0;        // última vez (em ms) que o vimos girar
@@ -54,7 +56,27 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
         tvNumber = findViewById(R.id.tvNumber);
         tvResult = findViewById(R.id.tvResult);
 
-        jogos = new MiniJogoRepository().getMiniJogos();
+        repository = new MiniJogoRepository();
+            jogos = repository.getMiniJogos();
+            repository.carregarMiniJogos(new MiniJogoRepository.Callback() {
+               @Override
+               public void onSucesso(List<MiniJogo> miniJogos) {
+                  if (isFinishing() || isDestroyed()) {
+                      return;
+               }
+              jogos = miniJogos;
+            }
+
+              @Override
+              public void onErro(String mensagem) {
+                  if (isFinishing() || isDestroyed()) {
+                     return;
+               }
+                   Log.w("SpinParty", mensagem);
+                    Toast.makeText(SpinActivity.this,
+                         "A usar a lista local de mini-jogos", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         btnRespin = findViewById(R.id.btnRespin);
         btnRespin.setOnClickListener(v -> {
