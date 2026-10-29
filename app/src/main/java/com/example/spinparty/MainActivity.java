@@ -15,6 +15,7 @@ import com.example.spinparty.data.JogadorRepository;
 import com.example.spinparty.model.Jogador;
 
 public class MainActivity extends AppCompatActivity {
+    private JogadorRepository jogadorRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

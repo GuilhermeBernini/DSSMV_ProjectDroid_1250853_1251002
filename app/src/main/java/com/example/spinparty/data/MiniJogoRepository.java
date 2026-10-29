@@ -1,9 +1,18 @@
 package com.example.spinparty.data;
 
+import android.os.Handler;
+import android.os.Looper;
+
+import com.example.spinparty.BuildConfig;
 import com.example.spinparty.model.MiniJogo;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MiniJogoRepository {
     
