@@ -111,7 +111,7 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             hasResult = true;
             currentNumber = jogos.indexOf(porJogar.get(0)) + 1;
             tvNumber.setText(String.valueOf(currentNumber));
-            tvResult.setText("Último jogo: " + porJogar.get(0).getNome());
+            tvResult.setText("");
             btnRespin.setVisibility(View.GONE);
             btnJogar.setVisibility(View.VISIBLE);
         } else {                                        // senão, ecrã limpo para girar
