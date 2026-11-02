@@ -13,6 +13,9 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.SpinParty">
         <activity
+                android:name=".ContarVibracoesActivity"
+                android:exported="false"/>
+        <activity
                 android:name=".BatataQuenteActivity"
                 android:exported="false"/>
         <activity

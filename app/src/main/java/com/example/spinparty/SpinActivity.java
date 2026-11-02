@@ -153,6 +153,11 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             Intent intent = new Intent(this, BatataQuenteActivity.class);
             intent.putExtra("nome", jogo.getNome());
             startActivity(intent);
+        }else if (jogo.getTipo().equals("contar_vibracoes")){
+            Intent intent = new Intent(this, ContarVibracoesActivity.class);
+            intent.putExtra("nome", jogo.getNome());
+            startActivity(intent);
+
         }else{
             Toast.makeText(this, "Em breve: " + jogo.getNome(), Toast.LENGTH_SHORT).show();
         }
