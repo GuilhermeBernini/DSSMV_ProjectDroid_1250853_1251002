@@ -20,8 +20,10 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.example.spinparty.data.MiniJogoRepository;
 import com.example.spinparty.model.MiniJogo;
+import com.example.spinparty.model.Partida;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Random;
 import android.util.Log;
 
@@ -98,6 +100,38 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(this, gyroscope, SensorManager.SENSOR_DELAY_GAME);
+        prepararRonda();
+    }
+
+
+    // prepara o ecrã sempre que se volta ao Spin (ex.: depois da pontuação)
+    private void prepararRonda() {
+        List<MiniJogo> porJogar = jogosPorJogar();
+        if (porJogar.size() == 1) {                     // só falta 1: não é preciso girar
+            hasResult = true;
+            currentNumber = jogos.indexOf(porJogar.get(0)) + 1;
+            tvNumber.setText(String.valueOf(currentNumber));
+            tvResult.setText("Último jogo: " + porJogar.get(0).getNome());
+            btnRespin.setVisibility(View.GONE);
+            btnJogar.setVisibility(View.VISIBLE);
+        } else {                                        // senão, ecrã limpo para girar
+            hasResult = false;
+            tvNumber.setText("?");
+            tvResult.setText("");
+            btnRespin.setVisibility(View.GONE);
+            btnJogar.setVisibility(View.GONE);
+        }
+    }
+
+    // devolve só os jogos que ainda não saíram nesta partida
+    private List<MiniJogo> jogosPorJogar() {
+        List<MiniJogo> porJogar = new ArrayList<>();
+        for (MiniJogo j : jogos) {
+            if (!Partida.getAtual().jaJogou(j.getTipo())) {
+                porJogar.add(j);
+            }
+        }
+        return porJogar;
     }
 
     @Override
@@ -124,7 +158,10 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             // ESTÁ A GIRAR
             isSpinning = true;
             lastSpinTime = now;
-            currentNumber = random.nextInt(jogos.size()) + 1;  // número entre 1 e 3
+            List<MiniJogo> porJogar = jogosPorJogar();
+            if (porJogar.isEmpty()) return;                       // segurança: já se jogou tudo
+            MiniJogo sorteado = porJogar.get(random.nextInt(porJogar.size()));
+            currentNumber = jogos.indexOf(sorteado) + 1;          // mostra o número do jogo (1, 2 ou 3)
             tvNumber.setText(String.valueOf(currentNumber));
             tvResult.setText("");
         } else if (isSpinning && now - lastSpinTime > 500) {
@@ -145,6 +182,7 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
 
     private void abrirJogo(){
         MiniJogo jogo = jogos.get(currentNumber - 1);  // o jogo que saiu
+        Partida.getAtual().marcarJogado(jogo.getTipo());   // este jogo já não volta a sair
         if (jogo.getTipo().equals("reflexos")){
             Intent intent = new Intent(this, ReflexosActivity.class);
             intent.putExtra("nome", jogo.getNome());
@@ -157,7 +195,6 @@ public class SpinActivity extends AppCompatActivity implements SensorEventListen
             Intent intent = new Intent(this, ContarVibracoesActivity.class);
             intent.putExtra("nome", jogo.getNome());
             startActivity(intent);
-
         }else{
             Toast.makeText(this, "Em breve: " + jogo.getNome(), Toast.LENGTH_SHORT).show();
         }
