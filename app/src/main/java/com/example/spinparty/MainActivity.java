@@ -98,7 +98,8 @@ public class MainActivity extends AppCompatActivity {
         }
         String texto = "Jogadores:";
         for (int i = 0; i < jogadores.size(); i++) {
-            texto += "\n" + (i + 1) + ". " + jogadores.get(i);
+            if (i > 0) texto += ",";
+            texto += " " + jogadores.get(i);
         }
         tvJogadores.setText(texto);
     }

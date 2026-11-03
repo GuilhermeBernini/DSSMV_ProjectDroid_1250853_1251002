@@ -1,5 +1,6 @@
 package com.example.spinparty;
 
+import android.content.Intent;                          // NOVO
 import android.os.*;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +13,9 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.example.spinparty.model.Partida;             // NOVO
+
+import java.util.List;                                  // NOVO
 import java.util.Random;
 
 public class ContarVibracoesActivity extends AppCompatActivity {
@@ -26,6 +30,9 @@ public class ContarVibracoesActivity extends AppCompatActivity {
     private Handler handler = new Handler(Looper.getMainLooper());
     private Random random = new Random();
     private int numeroCerto;              // quantas vezes vibrou nesta ronda
+
+    private List<String> jogadores;       // NOVO: os nomes, vindos da Partida
+    private int jogadorAtual = 0;         // NOVO: de quem é a vez (0 = o primeiro)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +58,11 @@ public class ContarVibracoesActivity extends AppCompatActivity {
             tvTitulo.setText(nome);
         }
 
-        // 3. botões VIBRAR e JOGAR OUTRA VEZ começam uma ronda
+        jogadores = Partida.getAtual().getJogadores();    // NOVO
+
+        // 3. VIBRAR começa a ronda; o botão de baixo passa ao próximo jogador
         btnVibrar.setOnClickListener(v -> comecarRonda());
-        btnRepetir.setOnClickListener(v -> comecarRonda());
+        btnRepetir.setOnClickListener(v -> proximoJogador());   // NOVO (antes era comecarRonda)
 
         // 4. os 6 botões dos números: em vez de 6 blocos iguais, um ciclo
         int[] ids = {R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6, R.id.btn7, R.id.btn8};
@@ -79,7 +88,8 @@ public class ContarVibracoesActivity extends AppCompatActivity {
 
     // ===== JOGO =====
     private void mostrarInicio() {
-        tvMensagem.setText("Fecha os olhos, segura o telemóvel na mão e conta as vibrações!");
+        // NOVO: diz de quem é a vez
+        tvMensagem.setText("Vez do " + jogadores.get(jogadorAtual) + "!\n\nFecha os olhos, segura o telemóvel na mão e conta as vibrações!");
         btnVibrar.setVisibility(View.VISIBLE);
         btnRepetir.setVisibility(View.GONE);
         layoutNumeros.setVisibility(View.GONE);
@@ -116,11 +126,30 @@ public class ContarVibracoesActivity extends AppCompatActivity {
     private void verificar(int resposta) {
         layoutNumeros.setVisibility(View.GONE);
         if (resposta == numeroCerto) {
-            tvMensagem.setText("Acertaste! 🎉\nForam " + numeroCerto + " vibrações.");
+            Partida.getAtual().darPontos(jogadorAtual, 2);    // NOVO: quem acerta leva 2
+            tvMensagem.setText("Acertaste! 🎉 +2 pontos\nForam " + numeroCerto + " vibrações.");
         } else {
             tvMensagem.setText("Falhaste! 😅\nEram " + numeroCerto + " vibrações.");
         }
+
+        // NOVO: o texto do botão depende de ainda faltar alguém ou não
+        if (jogadorAtual == jogadores.size() - 1) {
+            btnRepetir.setText("VER PONTUAÇÃO");
+        } else {
+            btnRepetir.setText("PRÓXIMO JOGADOR");
+        }
         btnRepetir.setVisibility(View.VISIBLE);
+    }
+
+    // NOVO: passa a vez; depois do último, abre a pontuação
+    private void proximoJogador() {
+        jogadorAtual++;
+        if (jogadorAtual < jogadores.size()) {
+            mostrarInicio();                          // "Vez do próximo!"
+        } else {
+            startActivity(new Intent(this, PontuacaoActivity.class));
+            finish();                                 // fecha o jogo; a pontuação fica por cima do Spin
+        }
     }
 
 }
