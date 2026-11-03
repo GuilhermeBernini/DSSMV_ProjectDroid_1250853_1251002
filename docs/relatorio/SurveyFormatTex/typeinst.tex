@@ -96,7 +96,15 @@ detetar a rotação; o acelerómetro, para detetar movimento nos mini-jogos; e a
 vibração, como \emph{feedback} e mecânica de jogo. Comunica com o serviço REST
 restdb.io, de onde obtém os mini-jogos e os desafios.
 
-[...] Aplicações semelhantes: [a preencher ainda].
+Aplicações semelhantes:
+Existem aplicações semelhantes que usam o telemóvel como "roleta" para jogos
+de grupo, como a \emph{Heads Up!} e a \emph{Jackbox Party Pack}, que também
+escolhem desafios aleatórios para jogar em grupo. O SpinParty distingue-se
+por usar diretamente os sensores de movimento do telemóvel (giroscópio e
+acelerómetro) como forma de interação, em vez de apenas toques no ecrã, e por
+guardar os mini-jogos e os jogadores num serviço REST externo (restdb.io), o
+que permite atualizar o catálogo de mini-jogos e desafios sem alterar a
+aplicação.
 
 
 \section{Análise}
@@ -124,7 +132,82 @@ no Android Studio, e a demonstração tem de ser feita num dispositivo real.
 feita por REST, com dados em JSON.
 \end{itemize}
 
+\subsection{Casos de uso}
+A aplicação tem um único ator, o \emph{Jogador}, visto que o telemóvel é
+partilhado por todos os jogadores da partida. A Figura~\ref{fig:casos-uso}
+mostra os casos de uso principais.
 
+\begin{figure}
+  \centering
+  \fbox{\parbox{0.8\textwidth}{\centering [inserir diagrama de casos de uso]}}
+  \caption{Diagrama de casos de uso.}
+  \label{fig:casos-uso}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{UC1 — Adicionar jogador:} o jogador escreve o nome e junta-o à
+  partida (mínimo 2, máximo 4 jogadores).
+  \item \textbf{UC2 — Girar o telemóvel:} o jogador gira o telemóvel para
+  sortear um mini-jogo entre os que ainda não foram jogados nesta partida.
+  \item \textbf{UC3 — Jogar um mini-jogo:} o jogador joga o mini-jogo sorteado
+  (Reflexos, Batata Quente ou Contar Vibrações).
+  \item \textbf{UC4 — Consultar as regras:} o jogador consulta uma explicação
+  rápida de como o jogo funciona.
+\end{itemize}
+
+A Tabela~\ref{tab:uc2} detalha o caso de uso UC2, por ser o caso de uso
+central da aplicação.
+
+\begin{table}
+  \caption{Caso de uso UC2 — Girar o telemóvel.}
+  \label{tab:uc2}
+  \centering
+  \footnotesize
+  \begin{tabular}{|p{2.6cm}|p{7.4cm}|}
+    \hline
+    Ator & Jogador \\ \hline
+    Pré-condições & Existem pelo menos 2 jogadores adicionados à partida. \\
+    \hline
+    Fluxo principal &
+    1. O jogador gira o telemóvel.\newline
+    2. A aplicação deteta a rotação pelo giroscópio e mostra números aleatórios
+    no ecrã.\newline
+    3. O jogador para de girar o telemóvel.\newline
+    4. Passados cerca de 500 ms sem rotação, a aplicação sorteia um mini-jogo
+    entre os que ainda não saíram e mostra o nome.\newline
+    5. O telemóvel vibra para assinalar o resultado. \\ \hline
+    Pós-condições & O mini-jogo sorteado fica marcado como já jogado nesta
+    partida, para não voltar a sair. \\ \hline
+  \end{tabular}
+\end{table}
+
+\subsection{Modelo de domínio}
+A Figura~\ref{fig:dominio} mostra as principais entidades do domínio e as
+suas relações.
+
+\begin{figure}
+  \centering
+  \fbox{\parbox{0.8\textwidth}{\centering [inserir modelo de domínio]}}
+  \caption{Modelo de domínio.}
+  \label{fig:dominio}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Partida:} representa o jogo em curso. Tem uma lista de
+  jogadores, a pontuação de cada um e os mini-jogos já jogados, para não se
+  repetirem na mesma partida.
+  \item \textbf{Jogador:} tem um nome e uma pontuação. É criado localmente, na
+  Partida, e também guardado no serviço REST (restdb.io).
+  \item \textbf{MiniJogo:} representa um dos três jogos possíveis (Reflexos,
+  Batata Quente, Contar Vibrações), com um nome, uma descrição e um tipo. É
+  obtido do serviço REST, com uma lista local como alternativa caso a ligação
+  falhe.
+  \item \textbf{Desafio:} uma pergunta ou tarefa associada a um mini-jogo
+  (usado, por exemplo, no Batata Quente).
+\end{itemize}
+
+Uma Partida tem vários Jogadores e vários MiniJogos jogados; um MiniJogo pode
+ter vários Desafios associados.
 
 \section{Implementação}
 \subsection{Deteção da rotação com o giroscópio}
@@ -154,6 +237,141 @@ public void onSensorChanged(SensorEvent event) {
 }
 \end{lstlisting}
 
+\subsection{Comunicação com o restdb.io}
+A classe \texttt{RestDbClient} faz os pedidos HTTP com \texttt{HttpURLConnection}
+(sem bibliotecas externas), numa \emph{thread} à parte, nunca na principal.
+Cada pedido leva o cabeçalho \texttt{x-apikey} com a chave da API, lida de
+\texttt{local.properties} e exposta à aplicação através do \texttt{BuildConfig},
+para a chave nunca ficar no código nem no repositório Git.
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+public String get(String path) throws IOException {
+    URL url = new URL(baseUrl + path);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestMethod("GET");
+    connection.setRequestProperty("x-apikey", apiKey);
+    int code = connection.getResponseCode();
+    if (code != HttpURLConnection.HTTP_OK) {
+        throw new IOException("Resposta HTTP " + code);
+    }
+    return readAll(connection.getInputStream());
+}
+\end{lstlisting}
+
+O \texttt{MiniJogoRepository} usa este cliente para obter os mini-jogos
+(\texttt{GET /minijogos}) e o \texttt{MiniJogoJsonParser} converte a resposta
+JSON em objetos \texttt{MiniJogo}. Se o pedido falhar (sem rede, chave errada,
+etc.), o repositório usa uma lista local como alternativa, para a aplicação
+continuar a funcionar sem ligação:
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+public void carregarMiniJogos(Callback callback) {
+    if (!client.isConfigured()) {
+        callback.onErro("Falta configurar RESTDB_BASE_URL e RESTDB_API_KEY");
+        return;
+    }
+    executor.execute(() -> {
+        try {
+            String json = client.get("/minijogos");
+            List<MiniJogo> lista = MiniJogoJsonParser.parse(json);
+            mainHandler.post(() -> callback.onSucesso(lista));
+        } catch (IOException | JSONException e) {
+            mainHandler.post(() -> callback.onErro(e.getMessage()));
+        }
+    });
+}
+\end{lstlisting}
+
+\subsection{Criação de jogadores}
+Quando um jogador é adicionado, o \texttt{JogadorRepository} cria um registo
+na coleção \texttt{jogadores} do restdb.io, por \texttt{POST}, com o nome e a
+pontuação inicial a 0. Se este pedido falhar, o jogo continua na mesma,
+apenas com o jogador guardado localmente, porque a gravação remota não é
+essencial para jogar:
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+JSONObject corpo = new JSONObject();
+corpo.put("nome", nome);
+corpo.put("pontuacao", 0);
+String resposta = client.post("/jogadores", corpo.toString());
+JSONObject obj = new JSONObject(resposta);
+Jogador jogador = new Jogador(obj.getString("_id"), nome, 0);
+\end{lstlisting}
+
+\subsection{Reflexos: deteção de movimento com o acelerómetro}
+No mini-jogo Reflexos, o telemóvel fica pousado na mesa e, ao fim de um
+tempo aleatório (entre 2 e 5 segundos), o ecrã fica verde. O jogador que
+pegar primeiro no telemóvel ganha. A deteção de que o telemóvel foi
+levantado usa o acelerómetro: é calculada a força total nos três eixos e
+comparada com a força da gravidade em repouso; uma diferença grande
+significa que o telemóvel foi mexido.
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+public void onSensorChanged(SensorEvent event) {
+  float x = event.values[0];
+  float y = event.values[1];
+  float z = event.values[2];
+  double forca = Math.sqrt(x * x + y * y + z * z);
+  boolean mexeu = Math.abs(forca - SensorManager.GRAVITY_EARTH) > 3;
+  if (!mexeu) return;
+  // ... regista o tempo de reação ou a batota
+}
+\end{lstlisting}
+
+Para evitar deteções falsas logo ao colocar o telemóvel na mesa, a aplicação
+ignora os eventos do sensor durante os primeiros 1500 ms da ronda.
+
+\subsection{Contar Vibrações e feedback por vibração}
+A vibração é usada em dois papéis distintos: como \emph{feedback} (por
+exemplo, quando o mini-jogo é sorteado ou quando o ecrã do Reflexos fica
+verde) e como mecânica de jogo, no mini-jogo Contar Vibrações, onde o
+telemóvel vibra um número aleatório de vezes (entre 3 e 8) e o jogador tem
+de adivinhar quantas foram. Cada vibração é agendada com
+\texttt{Handler.postDelayed}, com um intervalo aleatório entre elas, para
+não ser possível contar pelo ritmo:
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+long tempo = 1500;
+for (int i = 0; i < numeroCerto; i++) {
+    handler.postDelayed(this::vibrarUmaVez, tempo);
+    tempo += 400 + random.nextInt(800);
+}
+handler.postDelayed(this::perguntar, tempo + 1000);
+\end{lstlisting}
+
+\subsection{Batata Quente e os desafios}
+No Batata Quente, o telemóvel mostra perguntas enquanto passa de jogador em
+jogador, e "explode" ao fim de um tempo aleatório (entre 15 e 30 segundos),
+escondido dos jogadores. O \texttt{DesafioRepository} fornece as perguntas
+associadas a este mini-jogo; cada vez que se carrega em "Passar", mostra-se
+uma pergunta nova, escolhida ao acaso.
+
+\subsection{Modelo da partida e pontuações}
+A classe \texttt{Partida} centraliza o estado de uma partida em curso: os
+jogadores (nomes, por ordem de entrada), a pontuação de cada um e os
+mini-jogos já jogados nessa partida, para não se repetirem. Só existe uma
+instância em cada momento (\texttt{Partida.getAtual()}), partilhada por
+todos os ecrãs:
+
+\begin{lstlisting}[numbers=left, basicstyle=\small\ttfamily]
+public void marcarJogado(String tipo) {
+    jogosJogados.add(tipo);
+}
+
+public boolean jaJogou(String tipo) {
+    return jogosJogados.contains(tipo);
+}
+\end{lstlisting}
+
+O \texttt{SpinActivity} usa estes dois métodos para só sortear mini-jogos
+ainda não jogados; quando falta apenas um, a aplicação salta a rotação e
+mostra-o diretamente, já que não há escolha a fazer.
+
+Atualmente, a pontuação de cada jogador (\texttt{darPontos}) é guardada só
+localmente, na \texttt{Partida}; a atualização desta pontuação no restdb.io
+por \texttt{PUT} ainda não está implementada (Secção~\ref{sec:conclusao}).
+
+
 \section{Design}
 \subsection{Arquitetura física}
 A aplicação corre num dispositivo Android e comunica por HTTPS com o serviço
@@ -167,6 +385,76 @@ REST restdb.io, onde estão guardados os mini-jogos, os desafios e os jogadores
 \label{fig:implantacao}
 \end{figure}
 
+\subsection{Modelo de classes}
+A Figura~\ref{fig:classes} mostra as principais classes da aplicação,
+organizadas em três pacotes: \texttt{model} (as entidades do domínio),
+\texttt{data} (acesso aos dados, local e remoto) e as classes de ecrã
+(\emph{Activities}).
+
+\begin{figure}
+  \centering
+  \fbox{\parbox{0.8\textwidth}{\centering [inserir diagrama de classes]}}
+  \caption{Modelo de classes.}
+  \label{fig:classes}
+\end{figure}
+
+\begin{itemize}
+  \item \textbf{Pacote \texttt{model}:} \texttt{Partida}, \texttt{Jogador},
+  \texttt{MiniJogo} e \texttt{Desafio}, as entidades descritas no modelo de
+  domínio (Secção~\ref{sec:context}).
+  \item \textbf{Pacote \texttt{data}:} \texttt{RestDbClient}, que faz os
+  pedidos HTTP ao restdb.io; \texttt{MiniJogoRepository} e
+  \texttt{JogadorRepository}, que escondem das \emph{Activities} se os dados
+  vêm do serviço REST ou da lista local; \texttt{MiniJogoJsonParser}, que
+  converte o JSON da resposta em objetos \texttt{MiniJogo}; e
+  \texttt{DesafioRepository}, com os desafios do Batata Quente.
+  \item \textbf{\emph{Activities}:} \texttt{MainActivity} (ecrã inicial, onde
+  se adicionam os jogadores), \texttt{SpinActivity} (ecrã do giroscópio, onde
+  se sorteia o mini-jogo), e um ecrã por mini-jogo:
+  \texttt{ReflexosActivity}, \texttt{BatataQuenteActivity} e
+  \texttt{ContarVibracoesActivity}.
+\end{itemize}
+
+Cada repositório de dados (\texttt{MiniJogoRepository},
+\texttt{JogadorRepository}) usa internamente o \texttt{RestDbClient} para
+comunicar com o restdb.io numa \emph{thread} à parte, e devolve o resultado
+à \emph{Activity} através de uma interface \texttt{Callback}, para nunca
+bloquear a interface gráfica à espera da rede.
+
+\subsection{Organização do código}
+O código está organizado em pacotes Java, dentro de
+\texttt{com.example.spinparty}:
+\begin{itemize}
+  \item \texttt{model} — as entidades do domínio (Secção~\ref{sec:context}).
+  \item \texttt{data} — acesso aos dados: o cliente REST, os repositórios e o
+  \emph{parser} do JSON.
+  \item o pacote raiz (\texttt{com.example.spinparty}) — as \emph{Activities},
+  um ecrã por classe.
+\end{itemize}
+Esta separação permite que as \emph{Activities} não saibam se os dados vêm
+do restdb.io ou da lista local: essa decisão fica só nos repositórios.
+
+\subsection{Navegação entre ecrãs}
+A navegação é feita com \emph{Intents} explícitos entre \emph{Activities}:
+o \texttt{MainActivity} abre o \texttt{SpinActivity} depois de haver pelo
+menos dois jogadores; o \texttt{SpinActivity} abre a \emph{Activity} do
+mini-jogo sorteado (\texttt{ReflexosActivity},
+\texttt{BatataQuenteActivity} ou \texttt{ContarVibracoesActivity}); e, no
+fim de cada mini-jogo, volta-se ao \texttt{SpinActivity} para sortear o
+seguinte, até todos os mini-jogos terem sido jogados nessa partida.
+
+\subsection{Interface}
+A Figura~\ref{fig:interface} mostra os principais ecrãs da aplicação: o ecrã
+inicial, onde se adicionam os jogadores; o ecrã do giroscópio, onde se
+sorteia o mini-jogo; e um dos ecrãs de mini-jogo.
+
+\begin{figure}
+  \centering
+  \fbox{\parbox{0.8\textwidth}{\centering [inserir capturas de ecrã]}}
+  \caption{Principais ecrãs da aplicação.}
+  \label{fig:interface}
+\end{figure}
+
 \section{Testes}
 \subsection{Testes funcionais}
 Os testes funcionais foram feitos manualmente no dispositivo [modelo do
@@ -174,6 +462,7 @@ telemóvel], com Android [versão]. A Tabela~\ref{tab:testes} descreve os testes
 e os resultados.
 
 \begin{table}
+
 \caption{Testes funcionais.}
 \label{tab:testes}
 \centering
@@ -181,20 +470,67 @@ e os resultados.
 \begin{tabular}{|p{0.7cm}|p{3.6cm}|p{3.4cm}|p{2.4cm}|}
 \hline
  & Passos & Resultado esperado & Resultado obtido \\ \hline
-T1 & Abrir a aplicação e carregar em começar. & Abre o ecrã do giro. &
-[preencher] \\ \hline
-T2 & Fazer girar o telemóvel. & Os números mudam no ecrã. & [preencher] \\
+T1 & No ecrã inicial, escrever um nome e carregar em ``+''. & O nome aparece
+na lista de jogadores. & [preencher] \\ \hline
+T2 & Adicionar só 1 jogador e carregar em ``Começar a jogar''. & Aparece um
+aviso a pedir pelo menos 2 jogadores. & [preencher] \\ \hline
+T3 & Adicionar 2 ou mais jogadores e carregar em ``Começar a jogar''. & Abre
+o ecrã do giro. & [preencher] \\ \hline
+T4 & Fazer girar o telemóvel. & Os números mudam no ecrã. & [preencher] \\
 \hline
-T3 & Parar de girar o telemóvel. & Passado cerca de meio segundo aparece o
+T5 & Parar de girar o telemóvel. & Passado cerca de meio segundo aparece o
 nome de um mini-jogo e o telemóvel vibra. & [preencher] \\ \hline
-T4 & Carregar no botão para girar outra vez. & O resultado é limpo e o ecrã
+T6 & Carregar no botão para girar outra vez. & O resultado é limpo e o ecrã
 volta a mostrar ``?''. & [preencher] \\ \hline
-T5 & No ecrã inicial, carregar no botão das regras. & Aparece uma mensagem
+T7 & Abrir o mini-jogo Reflexos e esperar que o ecrã fique verde. & O ecrã
+começa vermelho, fica verde ao fim de 2 a 5 s e o telemóvel vibra. &
+[preencher] \\ \hline
+T8 & No Reflexos, pegar no telemóvel antes do ecrã ficar verde. & Aparece a
+mensagem ``Batoteiro! Pegaste antes do verde''. & [preencher] \\ \hline
+T9 & Abrir o mini-jogo Batata Quente e esperar até ao fim do tempo. & Passam
+perguntas diferentes ao carregar em ``Passar'' e, ao fim de 15 a 30 s, o
+ecrã fica vermelho, mostra ``BOOM!'' e o telemóvel vibra. & [preencher] \\
+\hline
+T10 & Abrir o mini-jogo Contar Vibrações e carregar em ``Vibrar''. & O
+telemóvel vibra um número de vezes entre 3 e 8, depois pergunta quantas
+foram. & [preencher] \\ \hline
+T11 & Jogar os 3 mini-jogos na mesma partida. & Nenhum mini-jogo sai
+repetido; quando falta só um, o giro é saltado e o jogo abre diretamente. &
+[preencher] \\ \hline
+T12 & No ecrã inicial, carregar no botão das regras. & Aparece uma mensagem
 com as regras do jogo. & [preencher] \\ \hline
+T13 & Adicionar um jogador com o telemóvel ligado à internet. & O jogador
+aparece como novo registo na coleção \texttt{jogadores} do restdb.io. &
+[preencher] \\ \hline
+T14 & Abrir a aplicação sem ligação à internet (modo avião). & A aplicação
+continua a funcionar com a lista local de mini-jogos, sem bloquear. &
+[preencher] \\ \hline
 \end{tabular}
 \end{table}
 
 
 \section{Conclusão}
+\label{sec:conclusao}
+O SpinParty cumpre o essencial do que foi proposto: deteta a rotação do
+telemóvel pelo giroscópio, sorteia mini-jogos sem repetição numa partida,
+usa o acelerómetro e a vibração como mecânica dos mini-jogos Reflexos e
+Contar Vibrações, e comunica com o restdb.io para obter os mini-jogos (GET)
+e criar jogadores (POST), com uma lista local como alternativa caso a
+ligação falhe.
+
+A maior dificuldade foi coordenar o acesso à rede com o ciclo de vida das
+\emph{Activities}: os pedidos ao restdb.io correm numa \emph{thread} à
+parte e só podem alterar o ecrã depois de confirmar que a \emph{Activity}
+ainda existe (\texttt{isFinishing()}/\texttt{isDestroyed()}), para evitar
+exceções quando o utilizador sai do ecrã antes da resposta chegar. Também
+foi preciso ajustar os limiares de deteção do acelerómetro no Reflexos, para
+não disparar falsos positivos ao pousar o telemóvel na mesa.
+
+Como trabalho futuro, falta atualizar a pontuação dos jogadores no restdb.io
+por \texttt{PUT}, no fim de cada ronda, e permitir criar e remover desafios
+personalizados por \texttt{POST} e \texttt{DELETE} na coleção
+\texttt{desafios} — por agora, a pontuação só é guardada localmente, na
+\texttt{Partida}, e os desafios do Batata Quente são fixos no código. Falta
+também um ecrã final com a pontuação de todos os jogadores.
 
 \end{document}
