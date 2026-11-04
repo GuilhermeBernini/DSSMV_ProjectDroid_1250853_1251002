@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -76,17 +77,34 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SpinActivity.class));
         });
 
-        btnRules.setOnClickListener(v ->
-                Toast.makeText(this,
-                        "O telemóvel escolhe o desafio. Joga com os teus amigos e ganha pontos!",
-                        Toast.LENGTH_LONG).show()
-        );
+        btnRules.setOnClickListener(v -> mostrarRegras());   // abre a janela "Como jogar"
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         mostrarJogadores();     // ao voltar a este ecrã, mostra a lista atualizada
+    }
+
+
+    // janela com as regras do jogo
+    private void mostrarRegras() {
+        String regras =
+                "1. Adiciona 2 a 4 jogadores e carrega em COMEÇAR.\n" +
+                        "2. Gira o telemóvel em cima da mesa para sortear um mini-jogo.\n" +
+                        "3. Cada mini-jogo dá pontos. Depois dos 3, ganha quem tiver mais!\n\n" +
+                        "⚡ Reflexos: pousa o telemóvel e pega nele assim que ficar verde. " +
+                        "O mais rápido leva 3 pontos. Se pegares antes, é batota!\n\n" +
+                        "🥔 Batata quente: responde à pergunta e passa o telemóvel. " +
+                        "Quem o tiver quando rebentar é eliminado. O último a sobrar leva 3 pontos.\n\n" +
+                        "📳 Contar vibrações: fecha os olhos, conta as vibrações e escolhe o número. " +
+                        "Se acertares, levas 2 pontos.";
+
+        new AlertDialog.Builder(this)
+                .setTitle("Como jogar")     // título da janela
+                .setMessage(regras)         // o texto das regras
+                .setPositiveButton("OK", null)   // botão OK fecha a janela
+                .show();                    // mostra no ecrã
     }
 
     // escreve "Jogadores: 1. Dinis 2. Bernini..." no tvJogadores
