@@ -137,11 +137,11 @@ A aplicação tem um único ator, o \emph{Jogador}, visto que o telemóvel é
 partilhado por todos os jogadores da partida. A Figura~\ref{fig:casos-uso}
 mostra os casos de uso principais.
 
-\begin{figure}
-  \centering
-  \fbox{\parbox{0.8\textwidth}{\centering [inserir diagrama de casos de uso]}}
-  \caption{Diagrama de casos de uso.}
-  \label{fig:casos-uso}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/casos_uso.png}
+    \caption{Diagrama de casos de uso do SpinParty.}
+    \label{fig:casos-uso}
 \end{figure}
 
 \begin{itemize}
@@ -185,12 +185,14 @@ central da aplicação.
 A Figura~\ref{fig:dominio} mostra as principais entidades do domínio e as
 suas relações.
 
-\begin{figure}
+
+\begin{figure}[htbp]
   \centering
-  \fbox{\parbox{0.8\textwidth}{\centering [inserir modelo de domínio]}}
-  \caption{Modelo de domínio.}
+  \includegraphics[width=0.85\textwidth]{figures/modelo_dominio.png}
+  \caption{Modelo de domínio do SpinParty.}
   \label{fig:dominio}
 \end{figure}
+
 
 \begin{itemize}
   \item \textbf{Partida:} representa o jogo em curso. Tem uma lista de
@@ -378,12 +380,14 @@ A aplicação corre num dispositivo Android e comunica por HTTPS com o serviço
 REST restdb.io, onde estão guardados os mini-jogos, os desafios e os jogadores
 (Figura~\ref{fig:implantacao}).
 
-\begin{figure}
-\centering
-\fbox{\parbox{0.8\textwidth}{\centering [inserir diagrama de implantação]}}
-\caption{Diagrama de implantação.}
-\label{fig:implantacao}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{figures/diagrama_implantacao.png}
+  \caption{Diagrama de implantação da aplicação SpinParty.}
+  \label{fig:implantacao}
 \end{figure}
+
 
 \subsection{Modelo de classes}
 A Figura~\ref{fig:classes} mostra as principais classes da aplicação,
@@ -391,11 +395,11 @@ organizadas em três pacotes: \texttt{model} (as entidades do domínio),
 \texttt{data} (acesso aos dados, local e remoto) e as classes de ecrã
 (\emph{Activities}).
 
-\begin{figure}
-  \centering
-  \fbox{\parbox{0.8\textwidth}{\centering [inserir diagrama de classes]}}
-  \caption{Modelo de classes.}
-  \label{fig:classes}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/diagrama_classes.png}
+    \caption{Diagrama de classes da aplicação SpinParty.}
+    \label{fig:classes}
 \end{figure}
 
 \begin{itemize}
@@ -442,6 +446,19 @@ mini-jogo sorteado (\texttt{ReflexosActivity},
 \texttt{BatataQuenteActivity} ou \texttt{ContarVibracoesActivity}); e, no
 fim de cada mini-jogo, volta-se ao \texttt{SpinActivity} para sortear o
 seguinte, até todos os mini-jogos terem sido jogados nessa partida.
+
+\subsection{Sequência de execução de uma partida}
+
+A Figura~\ref{fig:sequencia} representa a sequência de
+interações entre o jogador, as componentes da aplicação
+e o serviço remoto durante uma partida.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{figures/diagrama_sequencia.png}
+    \caption{Diagrama de sequência do funcionamento de uma partida.}
+    \label{fig:sequencia}
+\end{figure}
 
 \subsection{Interface}
 A Figura~\ref{fig:interface} mostra os principais ecrãs da aplicação: o ecrã
