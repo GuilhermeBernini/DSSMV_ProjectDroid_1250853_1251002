@@ -66,7 +66,47 @@ public class RestDbClient {
             connection.disconnect();
         }
     }
+    public String put(String path, String jsonBody) throws IOException {
+        URL url = new URL(baseUrl + path);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        try {
+            connection.setRequestMethod("PUT");
+            connection.setConnectTimeout(TIMEOUT_MS);
+            connection.setReadTimeout(TIMEOUT_MS);
+            connection.setRequestProperty("x-apikey", apiKey);
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
 
+            byte[] bytes = jsonBody.getBytes(StandardCharsets.UTF_8);
+            connection.getOutputStream().write(bytes);
+
+            int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK && code != HttpURLConnection.HTTP_CREATED) {
+                throw new IOException("Resposta HTTP " + code);
+            }
+            return readAll(connection.getInputStream());
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    public void delete(String path) throws IOException {
+        URL url = new URL(baseUrl + path);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        try {
+            connection.setRequestMethod("DELETE");
+            connection.setConnectTimeout(TIMEOUT_MS);
+            connection.setReadTimeout(TIMEOUT_MS);
+            connection.setRequestProperty("x-apikey", apiKey);
+
+            int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK && code != HttpURLConnection.HTTP_NO_CONTENT) {
+                throw new IOException("Resposta HTTP " + code);
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
     private static String readAll(InputStream in) throws IOException {
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(
