@@ -11,7 +11,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -83,7 +82,7 @@ public class DesafioRepository {
                 } else {
                     mainHandler.post(() -> callback.onSucesso(lista));
                 }
-            } catch (IOException | JSONException | UnsupportedEncodingException e) {
+            } catch (IOException | JSONException e) {
                 mainHandler.post(() -> callback.onErro("Erro ao obter desafios: " + e.getMessage()));
             }
         });

@@ -12,6 +12,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.spinparty.model.Partida;
+import com.example.spinparty.data.JogadorRepository;
+import com.example.spinparty.model.Jogador;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,6 +61,7 @@ public class PontuacaoActivity extends AppCompatActivity {
             String vencedor = jogadores.get(ordem.get(0));
             tvTitulo.setText("🏆 " + vencedor + " ganhou!");
             btnProximo.setText("VOLTAR AO INÍCIO");
+            guardarPontosNoServidor(partida);       // PUT dos pontos finais de cada jogador
             btnProximo.setOnClickListener(v -> {
                 Partida.novaPartida();                  // apaga tudo para a próxima festa
                 Intent intent = new Intent(this, MainActivity.class);
@@ -66,9 +69,26 @@ public class PontuacaoActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             });
+
         } else {
             // A MEIO: fecha este ecrã e volta ao Spin
             btnProximo.setOnClickListener(v -> finish());
+        }
+    }
+
+    // manda os pontos de cada jogador para o restdb (PUT /jogadores/{id})
+    private void guardarPontosNoServidor(Partida partida) {
+        JogadorRepository repository = new JogadorRepository();
+        for (int i = 0; i < partida.getJogadores().size(); i++) {
+            String id = partida.getId(i);             // o id que guardámos quando o jogador foi criado
+            if (id == null) continue;                 // o POST falhou (sem net): não há nada para atualizar
+            repository.atualizarPontuacao(id, partida.getPontos(i), new JogadorRepository.Callback() {
+                @Override
+                public void onSucesso(Jogador jogador) { }   // guardado, não é preciso mostrar nada
+
+                @Override
+                public void onErro(String mensagem) { }      // sem net: o jogo continua na mesma
+            });
         }
     }
 }

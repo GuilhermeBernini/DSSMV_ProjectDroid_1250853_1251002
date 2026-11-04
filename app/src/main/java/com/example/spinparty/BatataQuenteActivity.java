@@ -31,6 +31,7 @@ public class BatataQuenteActivity extends AppCompatActivity {
     private Button btnRepetir;
 
     private List<Desafio> desafios;   // as perguntas da Batata quente
+    private DesafioRepository desafioRepository = new DesafioRepository();   // fala com o servidor
     private Handler handler = new Handler(Looper.getMainLooper());
     private Random random = new Random();
 
@@ -66,7 +67,18 @@ public class BatataQuenteActivity extends AppCompatActivity {
         }
 
         // 3. ir buscar as perguntas ao repositório
-        desafios = new DesafioRepository().getDesafios("batata_quente");
+        desafios = desafioRepository.getDesafios("batata_quente");   // plano B: perguntas locais
+
+        // pede as perguntas ao servidor (GET /desafios?q={"minijogo":"batata_quente"})
+        desafioRepository.carregarDesafios("batata_quente", new DesafioRepository.Callback() {
+            @Override
+            public void onSucesso(List<Desafio> lista) {
+                desafios = lista;                     // passa a usar as do servidor
+            }
+
+            @Override
+            public void onErro(String mensagem) { }   // sem net: fica com as locais
+        });
 
         // NOVO: no início estão todos vivos (0, 1, 2, ...)
         jogadores = Partida.getAtual().getJogadores();
@@ -88,6 +100,12 @@ public class BatataQuenteActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         handler.removeCallbacksAndMessages(null);     // se sair do ecrã, a bomba não explode
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        desafioRepository.fechar();                   // desliga a thread de rede
     }
 
     // ===== JOGO =====
