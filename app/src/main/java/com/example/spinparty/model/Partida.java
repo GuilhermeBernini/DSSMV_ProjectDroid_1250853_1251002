@@ -11,6 +11,7 @@ public class Partida {
     private final List<String> jogadores = new ArrayList<>();    // nomes, por ordem
     private final List<Integer> pontos = new ArrayList<>();      // pontos[i] = pontos do jogador i
     private final List<String> jogosJogados = new ArrayList<>(); // tipos já jogados
+    private final List<String> ids = new ArrayList<>();          // ids[i] = id do jogador i no restdb
 
     public static Partida getAtual() {             // dá a partida (o "caderno") que está a decorrer; todos os ecrãs usam esta
         return atual;
@@ -24,10 +25,19 @@ public class Partida {
     public void adicionarJogador(String nome) {    // junta um jogador ao fim da lista, com 0 pontos (botão ADICIONAR)
         jogadores.add(nome);
         pontos.add(0);                              // cada jogador começa com 0 pontos
+        ids.add(null);                              // o id ainda não chegou do servidor
     }
 
     public List<String> getJogadores() {           // dá a lista dos nomes, por ordem (jogador 0, 1, 2...)
         return jogadores;
+    }
+
+    public void setId(int jogador, String id) {     // guarda o id que o servidor deu ao jogador
+        ids.set(jogador, id);
+    }
+
+    public String getId(int jogador) {             // dá o id do jogador (para o PUT no fim)
+        return ids.get(jogador);
     }
 
     // ===== PONTOS =====

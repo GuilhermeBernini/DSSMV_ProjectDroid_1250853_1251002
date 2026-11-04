@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnStart = findViewById(R.id.btnStart);
         Button btnRules = findViewById(R.id.btnRules);
+        Button btnRanking = findViewById(R.id.btnRanking);
         Button btnAdicionar = findViewById(R.id.btnAdicionar);
         EditText etNomeJogador = findViewById(R.id.etNomeJogador);
         tvJogadores = findViewById(R.id.tvJogadores);
@@ -54,14 +55,18 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Máximo 4 jogadores", Toast.LENGTH_SHORT).show();
                 return;
             }
+            int indice = Partida.getAtual().getJogadores().size();   // posição que este jogador vai ter
             Partida.getAtual().adicionarJogador(nome);   // escreve no "caderno"
             etNomeJogador.setText("");                   // limpa a caixa para o próximo
             mostrarJogadores();                          // atualiza a lista no ecrã
 
             // grava também no restdb.io (parte do Bernini); se falhar, joga-se na mesma
             jogadorRepository.criarJogador(nome, new JogadorRepository.Callback() {
+
                 @Override
-                public void onSucesso(Jogador jogador) { }
+                public void onSucesso(Jogador jogador) {
+                    Partida.getAtual().setId(indice, jogador.getId());   // guarda o id do servidor
+                }
 
                 @Override
                 public void onErro(String mensagem) { }
@@ -78,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         btnRules.setOnClickListener(v -> mostrarRegras());   // abre a janela "Como jogar"
+        btnRanking.setOnClickListener(v ->
+                startActivity(new Intent(this, RankingActivity.class)));   // abre o ecrã Ranking
     }
 
     @Override
