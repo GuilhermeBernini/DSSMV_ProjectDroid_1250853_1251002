@@ -368,9 +368,10 @@ O \texttt{SpinActivity} usa estes dois métodos para só sortear mini-jogos
 ainda não jogados; quando falta apenas um, a aplicação salta a rotação e
 mostra-o diretamente, já que não há escolha a fazer.
 
-Atualmente, a pontuação de cada jogador (\texttt{darPontos}) é guardada só
-localmente, na \texttt{Partida}; a atualização desta pontuação no restdb.io
-por \texttt{PUT} ainda não está implementada (Secção~\ref{sec:conclusao}).
+A pontuação de cada jogador (\texttt{darPontos}) é guardada na
+\texttt{Partida} e também atualizada no restdb.io por
+\texttt{JogadorRepository.atualizarPontuacao} (\texttt{PUT /jogadores/\{id\}}),
+para o ranking final poder ser consultado a partir do servidor.
 
 
 \section{Design}
@@ -530,9 +531,11 @@ continua a funcionar com a lista local de mini-jogos, sem bloquear. &
 O SpinParty cumpre o essencial do que foi proposto: deteta a rotação do
 telemóvel pelo giroscópio, sorteia mini-jogos sem repetição numa partida,
 usa o acelerómetro e a vibração como mecânica dos mini-jogos Reflexos e
-Contar Vibrações, e comunica com o restdb.io para obter os mini-jogos (GET)
-e criar jogadores (POST), com uma lista local como alternativa caso a
-ligação falhe.
+Contar Vibrações, e comunica com o restdb.io para obter os mini-jogos e os
+desafios (GET), criar jogadores (POST) e atualizar as suas pontuações
+(PUT), com uma lista local como alternativa caso a ligação falhe. No fim
+de cada partida, a aplicação mostra a pontuação dos jogadores e um ranking
+obtido do servidor.
 
 A maior dificuldade foi coordenar o acesso à rede com o ciclo de vida das
 \emph{Activities}: os pedidos ao restdb.io correm numa \emph{thread} à
