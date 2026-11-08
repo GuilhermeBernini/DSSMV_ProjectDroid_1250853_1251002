@@ -21,3 +21,12 @@ out/
 .idea/
 .DS_Store
 /app/release/
+
+# ficheiros temporários do LaTeX
+docs/relatorio/SurveyFormatTex/*.aux
+docs/relatorio/SurveyFormatTex/*.log
+docs/relatorio/SurveyFormatTex/*.fls
+docs/relatorio/SurveyFormatTex/*.fdb_latexmk
+docs/relatorio/SurveyFormatTex/*.synctex.gz
+docs/relatorio/SurveyFormatTex/*.toc
+docs/relatorio/SurveyFormatTex/*.out
